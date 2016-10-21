@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Haut</string>
+    <string>Up</string>
    </property>
    <attribute name="buttonGroup">
     <string notr="true">directionButtonGroup</string>
@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Bas</string>
+    <string>Down</string>
    </property>
    <property name="checked">
     <bool>true</bool>
@@ -61,7 +61,7 @@
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Recherche :</string>
+       <string>To search :</string>
       </property>
      </widget>
     </item>

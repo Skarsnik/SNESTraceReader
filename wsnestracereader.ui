@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WSNEStracereader</string>
+   <string>SNES Trace reader</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
@@ -28,9 +28,18 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
-     <widget class="QPlainTextEdit" name="traceTextEdit">
+     <widget class="SnesTraceTextEdit" name="traceTextEdit">
       <property name="lineWrapMode">
        <enum>QPlainTextEdit::NoWrap</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string notr="true"/>
+      </property>
+      <property name="textInteractionFlags">
+       <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
       </property>
       <property name="centerOnScroll">
        <bool>true</bool>
@@ -59,7 +68,6 @@
     <property name="title">
      <string>Action</string>
     </property>
-    <addaction name="actionIndent"/>
     <addaction name="actionSearch"/>
    </widget>
    <addaction name="menuFichier"/>
@@ -88,7 +96,7 @@
   </widget>
   <widget class="QDockWidget" name="callTreeDockWidget">
    <property name="windowTitle">
-    <string>Execution Tree</string>
+    <string>Pseudo Call Tree</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -98,7 +106,7 @@
      <item>
       <widget class="QTreeView" name="callTreeView">
        <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOn</enum>
+        <enum>Qt::ScrollBarAsNeeded</enum>
        </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
@@ -144,6 +152,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
       <widget class="QTableWidget" name="tableWidget">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="horizontalHeaderVisible">
         <bool>true</bool>
        </attribute>
@@ -209,6 +220,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_6">
      <item>
       <widget class="QTableWidget" name="tableWidget_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="verticalHeaderVisible">
         <bool>false</bool>
        </attribute>
@@ -282,6 +296,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>SnesTraceTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>snestracetextedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

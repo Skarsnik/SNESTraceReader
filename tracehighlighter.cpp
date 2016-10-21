@@ -24,7 +24,7 @@ TraceHighlighter::TraceHighlighter(QObject *parent) :
 
     //QRegExp instructionAddrExp("^[0123456789abcdef]+");
     //QRegExp instructionExp("\\b\\w{3}\\b");
-    qDebug() << "Init";
+    qDebug() << "Init syntax HL";
 }
 
 void TraceHighlighter::highlightBlock(const QString &text)
@@ -39,7 +39,7 @@ void TraceHighlighter::highlightBlock(const QString &text)
     } else {
         setFormat(7, 3, normalInstructionFormat);
     }
-    QRegExp argR("\[^ ]+");
+    QRegExp argR("[^ ]+");
     argR.indexIn(text, 10);
     QString arg = argR.cap();
     QTextCharFormat argFormat = instructionArgFormat;

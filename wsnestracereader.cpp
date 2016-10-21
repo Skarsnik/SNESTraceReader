@@ -37,10 +37,7 @@ WSNEStracereader::WSNEStracereader(QWidget *parent) :
 
     m_settings = new QSettings("skarsnik.nyo.fr", "SNESTracereader");
 
-    QFont font;
-    font.setFamily("Courier");
-    font.setFixedPitch(true);
-    font.setPointSize(10);
+
 
 
     if (m_settings->contains("windowGeometry"))
@@ -48,17 +45,14 @@ WSNEStracereader::WSNEStracereader(QWidget *parent) :
         restoreGeometry(m_settings->value("windowGeometry").toByteArray());
         restoreState(m_settings->value("windowState").toByteArray());
     }
-    ui->traceTextEdit->setFont(font);
-    syntaxHL = new TraceHighlighter(ui->traceTextEdit->document());
-    syntaxHL->setDocument(ui->traceTextEdit->document());
-    ui->traceTextEdit->document()->setIndentWidth(20);
-    m_traceFile = "D:/Emulation/Lua/testcdfsall.log";
-    createCallTree();
-    QFile trace(m_traceFile);
-    if (trace.open(QFile::ReadOnly | QFile::Text))
-    {
-        ui->traceTextEdit->setPlainText(trace.readAll());
-    }
+    //ui->traceTextEdit->document()->setIndentWidth(20);
+    m_traceFile = "D:/Emulation/Lua/testcall.log";
+    openTrace();
+    qDebug() << "READ STUFF";
+    printMemoryTracking(memoryRead);
+    qDebug() << "WRITE STUFF";
+    printMemoryTracking(memoryWrite);
+    qDebug() << "End memory";
     //indentLog();
 }
 
@@ -79,6 +73,8 @@ void WSNEStracereader::on_actionOpen_triggered()
 
 void WSNEStracereader::openTrace() {
     QFile trace(m_traceFile);
+    memoryRead.clear();
+    memoryWrite.clear();
 
     if (trace.open(QFile::ReadOnly | QFile::Text))
     {
@@ -91,9 +87,10 @@ void WSNEStracereader::openTrace() {
         progress.setValue(0);
 
         QString line = trace.readLine();
+        ui->traceTextEdit->appendPlainText(line);
         lineSize = line.size();
         int numberOfRead = int(fileSize / (10000 * lineSize));
-        progress.setMaximum(numberOfRead);
+        progress.setMaximum(numberOfRead * 1.2);
         int nbRead = 1;
         while(!trace.atEnd()) {
             QByteArray data = trace.read(lineSize * 10000);
@@ -104,37 +101,19 @@ void WSNEStracereader::openTrace() {
             nbRead++;
         }
         progress.setValue(numberOfRead);
+        progress.setLabelText("Building pseudo call tree");
+        progress.setValue(numberOfRead * 1.1);
         qDebug() << "Start building Call tree";
         createCallTree();
         qDebug() << "End building Call tree";
+        progress.setValue(numberOfRead * 1.2);
         QTextCursor cur(ui->traceTextEdit->document());
         cur.movePosition(QTextCursor::Start);
         ui->traceTextEdit->setTextCursor(cur);
 
     }
-
+    setWindowTitle("SNES Trace reader - " + m_traceFile);
     return;
-    bool bigFile = false;
-    QMessageBox bigFileMsgBox(this);
-    bigFileMsgBox.setWindowModality(Qt::NonModal);
-    bigFileMsgBox.setText(
-                tr("The file you are attempting to open is large, (> 5 Mb), SNESTrace can take a while to process it.\nThis dialog will disapear when it's done"));
-    if (trace.open(QFile::ReadOnly | QFile::Text))
-    {
-        qDebug() << "Opening " << m_traceFile;
-        if (trace.size() > 5 * 1000000) {
-            bigFile = true;
-            bigFileMsgBox.show();
-            QCoreApplication::processEvents();
-            //QThread::sleep(1);
-        }
-        ui->traceTextEdit->setPlainText(trace.readAll());
-        qDebug() << "Start building Call tree";
-        createCallTree();
-        qDebug() << "End building Call tree";
-    }
-    if (bigFile)
-        bigFileMsgBox.hide();
 }
 
 void WSNEStracereader::indentLog()
@@ -188,6 +167,8 @@ void WSNEStracereader::createCallTree()
       int lineNumber = 0;
       while (!trace.atEnd()) {
           QByteArray line = trace.readLine();
+          //qDebug() << lineNumber << line;
+          line.chop(1);
           QString instr = line.mid(7, 3);
 
           if (instr == "jsr" || instr == "jsl" || instr == "jml") {
@@ -203,7 +184,7 @@ void WSNEStracereader::createCallTree()
               current = newCC;
           }
           if (instr == "rtl" || instr == "rts" || instr == "rti") {
-              qDebug() << line;
+              qDebug() << lineNumber << line;
               current->stop_addr = line.mid(0, 6);
               current->stop_line = lineNumber;
               if (current == root) {
@@ -217,6 +198,28 @@ void WSNEStracereader::createCallTree()
               }
               current = current->parent;
           }
+          if (instr == "lda" || instr == "ldx" || instr == "ldy") {
+              bool ok;
+              if (line.mid(21, 1) == "[") {
+                int addr = line.mid(22, 6).toInt(&ok, 16);
+                lineInstr nl;
+                nl.line = line;
+                nl.lineNumber = lineNumber;
+                memoryRead[addr].append(nl);
+              }
+          }
+          if (instr == "sda" || instr == "sdx" || instr == "sdy") {
+              bool ok;
+              if (line.mid(21, 1) == "[") {
+                int addr = line.mid(23, 6).toInt(&ok, 16);
+                lineInstr nl;
+                nl.line = line;
+                nl.lineNumber = lineNumber;
+                memoryWrite[addr].append(nl);
+              }
+          }
+
+
           lineNumber++;
       }
       current->stop_line = lineNumber - 1;
@@ -268,17 +271,20 @@ void WSNEStracereader::on_callTreeView_doubleClicked(const QModelIndex &index)
     QStandardItemModel* model = (QStandardItemModel*) ui->callTreeView->model();
     CallTreeItem* item = (CallTreeItem*) model->itemFromIndex(index);
     CallCodeObject *call = item->data();
-    setCursorToLine(call->start_line);
+    ui->traceTextEdit->setCursorToLine(call->start_line);
 }
 
-void WSNEStracereader::setCursorToLine(int lineNumber) {
-    QTextCursor cur = ui->traceTextEdit->textCursor();
-    QTextBlock b = ui->traceTextEdit->document()->findBlockByLineNumber(lineNumber - 1);
-    cur.setPosition(b.position());
-    cur.select(QTextCursor::LineUnderCursor);
-    ui->traceTextEdit->setTextCursor(cur);
-    ui->traceTextEdit->setFocus();
-    qDebug() << "moved to line :" << lineNumber;
+
+void WSNEStracereader::printMemoryTracking(const QMap<int, QList<lineInstr> > &track)
+{
+    QMapIterator<int, QList<lineInstr> > it(track);
+    while (it.hasNext()) {
+        it.next();
+        qDebug() << "0x" + QString::number(it.key(), 16);
+        foreach(lineInstr info, it.value()) {
+            qDebug() << "  Line :" + QString::number(info.lineNumber) + " -> " + info.line;
+        }
+    }
 }
 
 void WSNEStracereader::on_actionSearch_triggered()
@@ -323,7 +329,7 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
     }
     if (inIn) {
         CallTreeItem* item = i.value();
-        CallCodeObject *obj = i.key();
+        //CallCodeObject *obj = i.key();
         qDebug() << item->index();
         ui->callTreeView->setExpanded(item->index(), true);
         ui->callTreeView->scrollTo(item->index());
@@ -333,27 +339,10 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
 
 void WSNEStracereader::on_cursorPositionChanged()
 {
-    hightLightCurrentLine();
     QTextBlock b = ui->traceTextEdit->textCursor().block();
     int lineNumber = b.firstLineNumber();
-    ui->statusBar->showMessage("Line : " + QString::number(lineNumber));
+    ui->statusBar->showMessage("Line : " + QString::number(lineNumber + 1));
 }
-
-void WSNEStracereader::hightLightCurrentLine()
-{
-    QList<QTextEdit::ExtraSelection> extraSelections;
-
-
-    QTextEdit::ExtraSelection selection;
-    QColor hl = QColor(Qt::lightGray).lighter(120);
-    selection.format.setBackground(hl);
-    selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-    selection.cursor = ui->traceTextEdit->textCursor();
-    selection.cursor.clearSelection();
-    extraSelections.append(selection);
-    ui->traceTextEdit->setExtraSelections(extraSelections);
-}
-
 
 void WSNEStracereader::moveScrollBar() {
     int cursorY = ui->traceTextEdit->cursorRect().top();
@@ -372,30 +361,28 @@ void WSNEStracereader::on_toolButton_clicked()
 
 void WSNEStracereader::createBufferWithRoutine(CallCodeObject* obj) {
     SimpleTraceWindow *w = new SimpleTraceWindow(this);
+    QList<uint> listLineNumber;
+    QString text;
     w->setWindowTitle("Simple Trace - " + obj->start_addr);
-    QTextDocument *newBuff = w->document();
     int lineCount = ui->traceTextEdit->document()->lineCount();
     int lineNumber = obj->start_line;
     bool hasChild = false;
     CallCodeObject *child;
 
+    //FIXME Need to handle Dummy root item that have start line after their first child
+    //qDebug() << "children count : " << obj->children.size();
     QListIterator<CallCodeObject*> it(obj->children);
     if (!obj->children.empty()) {
         hasChild = true;
         child = it.next();
     }
 
-    while (lineNumber <= obj->stop_line || (obj->stop_line == -1 && lineNumber < lineCount)) {
+    while (obj->stop_line == 0 && lineNumber < ui->traceTextEdit->document()->blockCount()
+           || lineNumber <= obj->stop_line
+           || (obj->stop_line == -1 && lineNumber < lineCount)) {
         QTextBlock b = ui->traceTextEdit->document()->findBlockByLineNumber(lineNumber);
-
-        QTextCursor cur(b);
-        cur.select(QTextCursor::BlockUnderCursor);
-        QTextDocumentFragment frag = cur.selection();
-        QTextCursor ncur(newBuff);
-        ncur.movePosition(QTextCursor::End);
-        ncur.insertFragment(frag);
-        //qDebug() << newBuff->size();
-
+        text.append(b.text() + "\n");
+        listLineNumber.append(lineNumber);
         if (hasChild && lineNumber + 1 == child->start_line) {
             if (child->stop_line == -1)
                 lineNumber = lineCount;
@@ -405,8 +392,12 @@ void WSNEStracereader::createBufferWithRoutine(CallCodeObject* obj) {
                 child = it.next();
         } else {
             lineNumber++;
-        }
+        }    
     }
+    text.chop(1);
+    qDebug() << listLineNumber.size();
+    w->setText(text);
+    w->setLineNumbers(listLineNumber);
     w->show();
 }
 
@@ -414,4 +405,9 @@ void WSNEStracereader::closeEvent(QCloseEvent *)
 {
     m_settings->setValue("windowState", saveState());
     m_settings->setValue("windowGeometry", saveGeometry());
+}
+
+void WSNEStracereader::on_action_Quit_triggered()
+{
+    qApp->exit();
 }

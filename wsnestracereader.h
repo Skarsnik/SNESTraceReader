@@ -7,6 +7,8 @@
 #include "callcodeobject.h"
 #include "calltreeitem.h"
 #include "searchwindow.h"
+#include "stuffreadwrite.h"
+#include "snestracetextedit.h"
 
 namespace Ui {
 class WSNEStracereader;
@@ -33,10 +35,10 @@ private slots:
 
     void on_cursorPositionChanged();
 
-    void hightLightCurrentLine();
-
     void on_toolButton_clicked();
 
+
+    void on_action_Quit_triggered();
 
 private:
     Ui::WSNEStracereader *ui;
@@ -50,11 +52,14 @@ private:
     void indentLog();
 
     void createCallTree();
+    QMap<int, QList<lineInstr> >   memoryRead;
+    QMap<int, QList<lineInstr> >   memoryWrite;
 
     int indentLevel;
     void displayCall(CallCodeObject *item, uint indent);
     void createTreeModelItem(CallCodeObject *item, CallTreeItem *parent);
-    void setCursorToLine(int lineNumber);
+
+    void printMemoryTracking(const QMap<int, QList<lineInstr> > &track);
 
     void moveScrollBar();
     void createBufferWithRoutine(CallCodeObject *obj);

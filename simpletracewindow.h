@@ -5,6 +5,7 @@
 
 #include <QTextDocument>
 #include <QWidget>
+#include <QList>
 
 namespace Ui {
 class SimpleTraceWindow;
@@ -17,13 +18,11 @@ class SimpleTraceWindow : public QWidget
 public:
     explicit SimpleTraceWindow(QWidget *parent = 0);
     ~SimpleTraceWindow();
-
-    QTextDocument* document();
+    void    setLineNumbers(QList<uint>& lineNumbers);
+    void    setText(QString text);
 
 private:
     Ui::SimpleTraceWindow *ui;
-
-    TraceHighlighter *syntaxHL;
 };
 
 #endif // SIMPLETRACEWINDOW_H

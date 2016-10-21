@@ -18,10 +18,17 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QTextEdit" name="traceTextEdit"/>
+    <widget class="SnesTraceTextEdit" name="tracePlainTextEdit"/>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SnesTraceTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>snestracetextedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

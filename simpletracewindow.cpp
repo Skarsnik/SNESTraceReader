@@ -9,17 +9,6 @@ SimpleTraceWindow::SimpleTraceWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Window);
-
-
-    QFont font;
-    font.setFamily("Courier");
-    font.setFixedPitch(true);
-    font.setPointSize(10);
-
-    ui->traceTextEdit->setFont(font);
-
-    syntaxHL = new TraceHighlighter(ui->traceTextEdit->document());
-    syntaxHL->setDocument(ui->traceTextEdit->document());
 }
 
 SimpleTraceWindow::~SimpleTraceWindow()
@@ -27,8 +16,13 @@ SimpleTraceWindow::~SimpleTraceWindow()
     delete ui;
 }
 
-QTextDocument* SimpleTraceWindow::document()
+void    SimpleTraceWindow::setLineNumbers(QList<uint> &lineNumbers)
 {
-    return ui->traceTextEdit->document();
+    ui->tracePlainTextEdit->setLineNumberList(lineNumbers);
+}
+
+void SimpleTraceWindow::setText(QString text)
+{
+    ui->tracePlainTextEdit->setPlainText(text);
 }
 

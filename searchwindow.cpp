@@ -1,5 +1,6 @@
 #include "searchwindow.h"
 #include "ui_searchwindow.h"
+#include <QDebug>
 
 SearchWindow::SearchWindow(QWidget *parent) :
     QWidget(parent),
@@ -46,3 +47,8 @@ void SearchWindow::setTextCursor(QTextCursor textCursor)
     m_textCursor = textCursor;
 }
 
+
+void SearchWindow::on_comboBox_activated(const QString &arg1)
+{
+    on_pushButton_clicked();
+}
