@@ -8,6 +8,8 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+DESTDIR = $$IN_PWD
+
 TARGET = SNEStracereader
 TEMPLATE = app
 
@@ -22,7 +24,11 @@ SOURCES += main.cpp\
     routinemapeditor.cpp \
     routinemapfile.cpp \
     snestracetextedit.cpp \
-    traceeditsidebar.cpp
+    traceeditsidebar.cpp \
+    readwritewindow.cpp \
+    disassemblylaunchwindow.cpp \
+    disassemblywindow.cpp \
+    asmsyntaxhl.cpp
 
 HEADERS  += wsnestracereader.h \
     tracehighlighter.h \
@@ -35,16 +41,25 @@ HEADERS  += wsnestracereader.h \
     routinemapeditor.h \
     routinemapfile.h \
     snestracetextedit.h \
-    traceeditsidebar.h
+    traceeditsidebar.h \
+    readwritewindow.h \
+    disassemblylaunchwindow.h \
+    disassemblywindow.h \
+    asmsyntaxhl.h
 
 FORMS    += wsnestracereader.ui \
     disassembledialog.ui \
     searchwindow.ui \
     simpletracewindow.ui \
-    routinemapeditor.ui
+    routinemapeditor.ui \
+    readwritewindow.ui \
+    disassemblylaunchwindow.ui \
+    disassemblywindow.ui
 
 
 RC_FILE = SNESTracereader.rc
 
 DISTFILES += \
     deploystuff.bat
+
+SUBDIRS = Dispel

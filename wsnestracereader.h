@@ -9,6 +9,7 @@
 #include "searchwindow.h"
 #include "stuffreadwrite.h"
 #include "snestracetextedit.h"
+#include "disassemblylaunchwindow.h"
 
 namespace Ui {
 class WSNEStracereader;
@@ -40,10 +41,15 @@ private slots:
 
     void on_action_Quit_triggered();
 
+    void on_actionShow_Read_Write_triggered();
+
+    void on_actionDissamble_stuff_triggered();
+
 private:
     Ui::WSNEStracereader *ui;
     SearchWindow *m_searchWindow;
     QString m_traceFile;
+    DisassemblyLaunchWindow *disambleLaunchWindow;
 
     TraceHighlighter* syntaxHL;
     QMap<CallCodeObject *, CallTreeItem*> mapCallObjectItems;

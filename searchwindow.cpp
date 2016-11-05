@@ -8,6 +8,7 @@ SearchWindow::SearchWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowFlags(Qt::NoDropShadowWindowHint| Qt::Window);
+    ui->comboBox->setFocus();
 }
 
 SearchWindow::~SearchWindow()

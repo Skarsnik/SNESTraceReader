@@ -2,6 +2,7 @@
 #include "ui_wsnestracereader.h"
 #include "calltreeitem.h"
 #include "simpletracewindow.h"
+#include "readwritewindow.h"
 
 #include <QThread>
 #include <QFile>
@@ -22,6 +23,7 @@ WSNEStracereader::WSNEStracereader(QWidget *parent) :
     ui->setupUi(this);
 
     m_searchWindow = new SearchWindow(this);
+    disambleLaunchWindow = new DisassemblyLaunchWindow(this);
     m_searchWindow->hide();
 
     addDockWidget(Qt::LeftDockWidgetArea, ui->callTreeDockWidget);
@@ -154,6 +156,7 @@ void WSNEStracereader::indentLog()
 
 void WSNEStracereader::createCallTree()
 {
+  mapCallObjectItems.clear();
   CallCodeObject *root = new CallCodeObject();
   QFile trace(m_traceFile);
   if (trace.open(QFile::ReadOnly | QFile::Text)) {
@@ -172,7 +175,7 @@ void WSNEStracereader::createCallTree()
           QString instr = line.mid(7, 3);
 
           if (instr == "jsr" || instr == "jsl" || instr == "jml") {
-              qDebug() << line;
+             // qDebug() << line;
               QString jaddr = line.mid(12, 6);
               CallCodeObject* newCC = new CallCodeObject();
               current->children.append(newCC);
@@ -184,7 +187,7 @@ void WSNEStracereader::createCallTree()
               current = newCC;
           }
           if (instr == "rtl" || instr == "rts" || instr == "rti") {
-              qDebug() << lineNumber << line;
+              //qDebug() << lineNumber << line;
               current->stop_addr = line.mid(0, 6);
               current->stop_line = lineNumber;
               if (current == root) {
@@ -208,10 +211,10 @@ void WSNEStracereader::createCallTree()
                 memoryRead[addr].append(nl);
               }
           }
-          if (instr == "sda" || instr == "sdx" || instr == "sdy") {
+          if (instr == "sta" || instr == "stx" || instr == "sty" || instr == "stz") {
               bool ok;
               if (line.mid(21, 1) == "[") {
-                int addr = line.mid(23, 6).toInt(&ok, 16);
+                int addr = line.mid(22, 6).toInt(&ok, 16);
                 lineInstr nl;
                 nl.line = line;
                 nl.lineNumber = lineNumber;
@@ -223,7 +226,7 @@ void WSNEStracereader::createCallTree()
           lineNumber++;
       }
       current->stop_line = lineNumber - 1;
-      displayCall(root, 0);
+      //displayCall(root, 0);
 
 
       QStandardItemModel* model = new QStandardItemModel();
@@ -314,7 +317,7 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
         //CallTreeItem* item = i.value();
         CallCodeObject *obj = i.key();
         qDebug() << obj->start_addr << obj->start_line << obj->stop_line;
-        if (lineNumber > obj->start_line && lineNumber <= obj->stop_line) {
+        if (lineNumber > obj->start_line && (lineNumber <= obj->stop_line || obj->stop_line == 0) ) {
             foreach (CallCodeObject* child, obj->children) {
                 if ((lineNumber > child->start_line && lineNumber <= obj->stop_line)) {
                     inChild = true;
@@ -330,7 +333,7 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
     if (inIn) {
         CallTreeItem* item = i.value();
         //CallCodeObject *obj = i.key();
-        qDebug() << item->index();
+        qDebug() << item->index() << item->text();
         ui->callTreeView->setExpanded(item->index(), true);
         ui->callTreeView->scrollTo(item->index());
         ui->callTreeView->setCurrentIndex(item->index());
@@ -410,4 +413,18 @@ void WSNEStracereader::closeEvent(QCloseEvent *)
 void WSNEStracereader::on_action_Quit_triggered()
 {
     qApp->exit();
+}
+
+void WSNEStracereader::on_actionShow_Read_Write_triggered()
+{
+    ReadWriteWindow* rww = new ReadWriteWindow(this);
+    rww->setMemoryRead(memoryRead);
+    rww->setMemoryWrite(memoryWrite);
+    rww->update();
+    rww->show();
+}
+
+void WSNEStracereader::on_actionDissamble_stuff_triggered()
+{
+    disambleLaunchWindow->show();
 }
