@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2016 Sylvain "Skarsnik" Colinet
+
+This software is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include "wsnestracereader.h"
 #include "ui_wsnestracereader.h"
 #include "calltreeitem.h"
@@ -47,15 +65,11 @@ WSNEStracereader::WSNEStracereader(QWidget *parent) :
         restoreGeometry(m_settings->value("windowGeometry").toByteArray());
         restoreState(m_settings->value("windowState").toByteArray());
     }
-    //ui->traceTextEdit->document()->setIndentWidth(20);
+    //m_traceFile = "D:/Emulation/Lua/Secret of Evermore menu open.log";
     m_traceFile = "D:/Emulation/Lua/testcall.log";
     openTrace();
-    qDebug() << "READ STUFF";
-    printMemoryTracking(memoryRead);
-    qDebug() << "WRITE STUFF";
-    printMemoryTracking(memoryWrite);
-    qDebug() << "End memory";
-    //indentLog();
+    //findCallTreeItem(32);
+    //findCallTreeItem(15000);
 }
 
 WSNEStracereader::~WSNEStracereader()
@@ -307,6 +321,10 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
     QTextBlock b = tc.block();
     int lineNumber = b.firstLineNumber();
 
+    findCallTreeItem(lineNumber);
+}
+
+void    WSNEStracereader::findCallTreeItem(int lineNumber) {
     QMapIterator<CallCodeObject*, CallTreeItem*> i(mapCallObjectItems);
 
     qDebug() << lineNumber << mapCallObjectItems.size();
@@ -317,9 +335,13 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
         //CallTreeItem* item = i.value();
         CallCodeObject *obj = i.key();
         qDebug() << obj->start_addr << obj->start_line << obj->stop_line;
-        if (lineNumber > obj->start_line && (lineNumber <= obj->stop_line || obj->stop_line == 0) ) {
+        if (lineNumber > obj->start_line && (lineNumber <= obj->stop_line
+                                             || obj->stop_line == 0) ) // The most top Dummy entry ends with 0
+            {
             foreach (CallCodeObject* child, obj->children) {
-                if ((lineNumber > child->start_line && lineNumber <= obj->stop_line)) {
+                qDebug() << "Child" << child->start_addr << child->start_line << child->stop_line;
+                if ((lineNumber > child->start_line && lineNumber <= child->stop_line)) {
+                    qDebug() << "It's in the child";
                     inChild = true;
                     break;
                 }
@@ -329,6 +351,8 @@ void WSNEStracereader::searchWindowFound(QTextCursor &tc)
               qDebug() << "found it";
             }
         }
+        if (obj->start_line > lineNumber)
+            break;
     }
     if (inIn) {
         CallTreeItem* item = i.value();
