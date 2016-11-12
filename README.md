@@ -3,7 +3,7 @@ Help you read SNES instruction trace from emulator
 
 This is a tool written in the goal of helping you extract informations from snes tracelog from emulators.
 
-There is some of this features
+There are some of this features
 
 -Syntax hightlighting for the trace: make traces more readable
 
