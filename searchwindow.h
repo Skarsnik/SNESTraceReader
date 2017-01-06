@@ -46,7 +46,9 @@ signals:
 private slots:
     void on_pushButton_clicked();
 
-    void on_comboBox_activated(const QString &arg1);
+    //void on_comboBox_activated(const QString &arg1);
+
+    void    on_comboLineEditReturnPressed();
 
 private:
     Ui::SearchWindow *ui;
@@ -55,6 +57,7 @@ private:
     QTextCursor   m_textCursor;
 
     QStringList m_history;
+    void search();
 };
 
 #endif // SEARCHWINDOW_H

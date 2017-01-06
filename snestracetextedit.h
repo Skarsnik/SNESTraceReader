@@ -37,6 +37,7 @@ public:
     void setLineNumberList(const QList<uint> &value);
 
     void setSpecifiedLineNumber(bool value);
+    void    setSearchSelection(const QTextEdit::ExtraSelection &);
 
 private slots:
     void    updateSideBarAreaWidth(int);
@@ -47,6 +48,8 @@ private:
     QWidget*            m_sideBar;
     TraceHighlighter    *syntaxHL;
     bool                specifiedLineNumber;
+    bool                bsearchSelection;
+    QTextEdit::ExtraSelection   searchSelection;
     QList<uint>         lineNumberList;
 };
 

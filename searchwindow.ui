@@ -70,6 +70,9 @@
       <property name="editable">
        <bool>true</bool>
       </property>
+      <property name="insertPolicy">
+       <enum>QComboBox::NoInsert</enum>
+      </property>
      </widget>
     </item>
     <item>
@@ -80,6 +83,19 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="infoLabel">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>130</y>
+     <width>351</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
   </widget>
  </widget>
  <resources/>

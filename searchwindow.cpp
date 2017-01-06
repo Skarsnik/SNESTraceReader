@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "searchwindow.h"
 #include "ui_searchwindow.h"
 #include <QDebug>
+#include <QTextBlock>
 
 SearchWindow::SearchWindow(QWidget *parent) :
     QWidget(parent),
@@ -27,6 +28,7 @@ SearchWindow::SearchWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::NoDropShadowWindowHint| Qt::Window);
     ui->comboBox->setFocus();
+    QObject::connect((QObject*)ui->comboBox->lineEdit(), SIGNAL(returnPressed()), this, SLOT(on_comboLineEditReturnPressed()));
 }
 
 SearchWindow::~SearchWindow()
@@ -42,6 +44,11 @@ void SearchWindow::setDocument(QTextDocument *document)
 
 void SearchWindow::on_pushButton_clicked()
 {
+    search();
+}
+
+void SearchWindow::search()
+{
     QString toSearch = ui->comboBox->currentText();
     QTextCursor foundCursor;
 
@@ -53,9 +60,15 @@ void SearchWindow::on_pushButton_clicked()
     }
     if (!foundCursor.isNull()) {
         m_textCursor = foundCursor;
+        ui->infoLabel->setText(QString("Match found at line %1").arg(foundCursor.block().firstLineNumber()));
         emit foundStuff(foundCursor);
+        if (ui->comboBox->findText(toSearch) == -1)
+          ui->comboBox->addItem(toSearch);
+    } else {
+        ui->infoLabel->setText("<b>No match found</b>");
     }
 }
+
 QTextCursor SearchWindow::textCursor() const
 {
     return m_textCursor;
@@ -67,7 +80,7 @@ void SearchWindow::setTextCursor(QTextCursor textCursor)
 }
 
 
-void SearchWindow::on_comboBox_activated(const QString &arg1)
+void SearchWindow::on_comboLineEditReturnPressed()
 {
-    on_pushButton_clicked();
+    search();
 }

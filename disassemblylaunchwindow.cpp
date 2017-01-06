@@ -52,7 +52,7 @@ DisassemblyLaunchWindow::~DisassemblyLaunchWindow()
 void DisassemblyLaunchWindow::on_dispelPushButton_clicked()
 {
     dispelExe = QFileDialog::getOpenFileName(this,
-                                              tr("Pick dispel executable"), QString("D:/Project"), tr("Dispel.exe (*.exe)"));
+                                              tr("Pick dispel executable"), qApp->applicationDirPath(), tr("Dispel.exe (*.exe)"));
     ui->dispelLineEdit->setText(dispelExe);
 }
 
@@ -106,4 +106,9 @@ void DisassemblyLaunchWindow::runDispell()
 void DisassemblyLaunchWindow::on_pushButton_clicked()
 {
     runDispell();
+}
+
+void DisassemblyLaunchWindow::on_pushButton_2_clicked()
+{
+    close();
 }

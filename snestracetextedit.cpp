@@ -35,6 +35,7 @@ SnesTraceTextEdit::SnesTraceTextEdit(QWidget *parent) : QPlainTextEdit(parent)
 
     m_sideBar = new TraceEditSidebar(this);
     specifiedLineNumber = false;
+    bsearchSelection = false;
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateSideBarAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateSideBarArea(QRect,int)));
@@ -129,6 +130,12 @@ void SnesTraceTextEdit::setSpecifiedLineNumber(bool value)
     specifiedLineNumber = value;
 }
 
+void SnesTraceTextEdit::setSearchSelection(const QTextEdit::ExtraSelection &sel)
+{
+    bsearchSelection = true;
+    searchSelection = sel;
+}
+
 void SnesTraceTextEdit::setLineNumberList(const QList<uint> &value)
 {
     lineNumberList = value;
@@ -148,5 +155,7 @@ void SnesTraceTextEdit::on_cursorPositionChanged()
     selection.cursor = textCursor();
     selection.cursor.clearSelection();
     extraSelections.append(selection);
+    if (bsearchSelection)
+        extraSelections.append(searchSelection);
     setExtraSelections(extraSelections);
 }

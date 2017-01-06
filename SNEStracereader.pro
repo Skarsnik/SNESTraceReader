@@ -4,62 +4,24 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+TEMPLATE = subdirs
 
-DESTDIR = $$IN_PWD
-
-TARGET = SNEStracereader
-TEMPLATE = app
+SUBDIRS = snestracergui.pro \
+          Dispel/dispel.pro \
+          dispelgui.pro
 
 
-SOURCES += main.cpp\
-        wsnestracereader.cpp \
-    tracehighlighter.cpp \
-    disassembledialog.cpp \
-    calltreeitem.cpp \
-    searchwindow.cpp \
-    simpletracewindow.cpp \
-    routinemapeditor.cpp \
-    routinemapfile.cpp \
-    snestracetextedit.cpp \
-    traceeditsidebar.cpp \
-    readwritewindow.cpp \
-    disassemblylaunchwindow.cpp \
-    disassemblywindow.cpp \
-    asmsyntaxhl.cpp
-
-HEADERS  += wsnestracereader.h \
-    tracehighlighter.h \
-    disassembledialog.h \
-    callcodeobject.h \
-    calltreeitem.h \
-    searchwindow.h \
-    simpletracewindow.h \
-    stuffreadwrite.h \
-    routinemapeditor.h \
-    routinemapfile.h \
-    snestracetextedit.h \
-    traceeditsidebar.h \
-    readwritewindow.h \
-    disassemblylaunchwindow.h \
-    disassemblywindow.h \
-    asmsyntaxhl.h
-
-FORMS    += wsnestracereader.ui \
-    disassembledialog.ui \
-    searchwindow.ui \
-    simpletracewindow.ui \
-    routinemapeditor.ui \
-    readwritewindow.ui \
-    disassemblylaunchwindow.ui \
-    disassemblywindow.ui
-
-
-RC_FILE = SNESTracereader.rc
-
-DISTFILES += \
-    deploystuff.bat
-
-SUBDIRS = Dispel
+release {
+    win32 {
+        copyfordeploy.depends = $$IN_PWD/SNESTracer.exe \
+                         $$IN_PWD/DispelUi.exe \
+                         $$IN_PWD/Dispel/Dispel.exe
+        copyfordeploy.commands = $(COPY) $$shell_path($$IN_PWD/*.exe) $$shell_path($$IN_PWD/deploy/)
+        copyfordeploy.commands += $(COPY) $$shell_path($$IN_PWD/Dispel/Dispel.exe) $$shell_path($$IN_PWD/deploy/Dispel/)
+        deploy.commands = $$shell_path($$IN_PWD/deploystuff.bat)
+        deploy.depends = copyfordeploy
+        QMAKE_EXTRA_TARGETS += deploy
+        POST_TARGETDEPS = deploy
+    }
+}

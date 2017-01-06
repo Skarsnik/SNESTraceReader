@@ -110,11 +110,17 @@
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAsNeeded</enum>
        </property>
+       <property name="autoScroll">
+        <bool>false</bool>
+       </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
+       <property name="alternatingRowColors">
+        <bool>false</bool>
+       </property>
        <property name="horizontalScrollMode">
-        <enum>QAbstractItemView::ScrollPerPixel</enum>
+        <enum>QAbstractItemView::ScrollPerItem</enum>
        </property>
        <property name="expandsOnDoubleClick">
         <bool>false</bool>

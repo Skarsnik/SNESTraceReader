@@ -44,8 +44,6 @@ public:
 private slots:
     void on_actionOpen_triggered();
 
-    void on_actionIndent_triggered();
-
     void on_callTreeView_doubleClicked(const QModelIndex &index);
 
     void on_actionSearch_triggered();
@@ -72,8 +70,7 @@ private:
     TraceHighlighter* syntaxHL;
     QMap<CallCodeObject *, CallTreeItem*> mapCallObjectItems;
     QSettings* m_settings;
-
-    void indentLog();
+    QTextEdit::ExtraSelection   searchSelection;
 
     void createCallTree();
     QMap<int, QList<lineInstr> >   memoryRead;

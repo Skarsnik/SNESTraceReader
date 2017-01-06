@@ -44,6 +44,8 @@ WSNEStracereader::WSNEStracereader(QWidget *parent) :
     disambleLaunchWindow = new DisassemblyLaunchWindow(this);
     m_searchWindow->hide();
 
+    searchSelection.format.setBackground(QBrush(Qt::green));
+
     addDockWidget(Qt::LeftDockWidgetArea, ui->callTreeDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, ui->routineDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, ui->ramMapDockWidget);
@@ -132,41 +134,6 @@ void WSNEStracereader::openTrace() {
     return;
 }
 
-void WSNEStracereader::indentLog()
-{
-    //bool change;
-    QTextBlock b = ui->traceTextEdit->document()->firstBlock();
-
-    QTextCursor cursor(b);
-
-    while (b.isValid()) {
-       cursor.setPosition(b.position());
-       QTextBlockFormat bformat = cursor.blockFormat();
-
-
-       bformat.setIndent(indentLevel);
-       //bformat.setBackground(Qt::red);
-       cursor.setBlockFormat(bformat);
-       //cursor.mergeBlockFormat(bformat);
-       QString inst = b.text().mid(7,3);
-       if (inst == "jsr" || inst == "jsl" || inst == "jml") {
-            indentLevel++;
-            //qDebug() << indentLevel;
-       }
-       if (inst == "rtl" || inst == "rts" || inst == "rti") {
-           indentLevel--;
-           //qDebug() << indentLevel;
-       }
-       b = b.next();
-
-    }
-    /*b = ui->traceTextEdit->document()->firstBlock();
-    while (b.isValid()) {
-
-       b = b.next();
-       qDebug() << b.length() <<b.blockFormat().indent();
-    }*/
-}
 
 void WSNEStracereader::createCallTree()
 {
@@ -189,7 +156,6 @@ void WSNEStracereader::createCallTree()
           QString instr = line.mid(7, 3);
 
           if (instr == "jsr" || instr == "jsl" || instr == "jml") {
-             // qDebug() << line;
               QString jaddr = line.mid(12, 6);
               CallCodeObject* newCC = new CallCodeObject();
               current->children.append(newCC);
@@ -200,7 +166,7 @@ void WSNEStracereader::createCallTree()
               newCC->stop_line = - 1;
               current = newCC;
           }
-          if (instr == "rtl" || instr == "rts" || instr == "rti") {
+          if ((instr == "rtl" || instr == "rts" || instr == "rti") && lineNumber != 0) {
               //qDebug() << lineNumber << line;
               current->stop_addr = line.mid(0, 6);
               current->stop_line = lineNumber;
@@ -278,10 +244,6 @@ void WSNEStracereader::displayCall(CallCodeObject *item, uint indent) {
     qDebug() << QString(indent * 2, ' ') << "End  :" << item->stop_addr;
 }
 
-void WSNEStracereader::on_actionIndent_triggered()
-{
-    indentLog();
-}
 
 void WSNEStracereader::on_callTreeView_doubleClicked(const QModelIndex &index)
 {
@@ -314,8 +276,11 @@ void WSNEStracereader::on_actionSearch_triggered()
 void WSNEStracereader::searchWindowFound(QTextCursor &tc)
 {
     qDebug() << "Found stuff";
-    ui->traceTextEdit->setTextCursor(tc);
-
+    searchSelection.cursor = tc;
+    ui->traceTextEdit->setSearchSelection(searchSelection);
+    QTextCursor cur = tc;
+    cur.clearSelection();
+    ui->traceTextEdit->setTextCursor(cur);
     ui->traceTextEdit->setFocus();
 
     QTextBlock b = tc.block();
@@ -335,12 +300,14 @@ void    WSNEStracereader::findCallTreeItem(int lineNumber) {
         //CallTreeItem* item = i.value();
         CallCodeObject *obj = i.key();
         qDebug() << obj->start_addr << obj->start_line << obj->stop_line;
-        if (lineNumber > obj->start_line && (lineNumber <= obj->stop_line
-                                             || obj->stop_line == 0) ) // The most top Dummy entry ends with 0
+        if (lineNumber >= obj->start_line && (lineNumber <= obj->stop_line
+                                             || obj->stop_line == 0 || // The most top Dummy entry ends with 0
+                                                obj->stop_line == -1))
             {
             foreach (CallCodeObject* child, obj->children) {
                 qDebug() << "Child" << child->start_addr << child->start_line << child->stop_line;
-                if ((lineNumber > child->start_line && lineNumber <= child->stop_line)) {
+                if ((lineNumber >= child->start_line && lineNumber <= child->stop_line) ||
+                    (lineNumber >= child->start_line && child->stop_line == -1)) {
                     qDebug() << "It's in the child";
                     inChild = true;
                     break;
@@ -369,6 +336,7 @@ void WSNEStracereader::on_cursorPositionChanged()
     QTextBlock b = ui->traceTextEdit->textCursor().block();
     int lineNumber = b.firstLineNumber();
     ui->statusBar->showMessage("Line : " + QString::number(lineNumber + 1));
+    m_searchWindow->setTextCursor(ui->traceTextEdit->textCursor());
 }
 
 void WSNEStracereader::moveScrollBar() {
